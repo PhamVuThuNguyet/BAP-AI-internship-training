@@ -7,3 +7,4 @@ Database for this Lab including 2 tables as below:
 Sau khi đã có file json hoàn thiện, em tiến hành lưu vào db 
 ## Scraping synonyms
 Em sử dụng API của thesaurus.com để scrape data. API có dạng "https://tuna.thesaurus.com/pageData/"+ *abc*, với *abc* là từ cần tra cứu các từ đồng nghĩa. Response của API này là một file json. Chi tiết mã nguồn scraping được lưu trong file DataScraping.py
+Việc scrape data và insert vào db được diễn ra đồng thời.
