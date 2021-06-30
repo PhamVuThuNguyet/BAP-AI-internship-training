@@ -142,10 +142,15 @@ def vietnam_flag():
     return flag
 
 
-def show_img(flag_to_show):
-    cv2.imshow("Flag", flag_to_show)
+def show_img(flag_name,flag_to_show):
+    cv2.imshow(flag_name, flag_to_show)
     cv2.waitKey()
 
 
+def save_img(flag_name, flag_to_save):
+    cv2.imwrite("img/"+flag_name+".jpg", flag_to_save)
+
+
 vietnam_flag()
-show_img(flag)
+show_img("Vietnam Flag", flag)
+# save_img("VietnamFlag", flag)
