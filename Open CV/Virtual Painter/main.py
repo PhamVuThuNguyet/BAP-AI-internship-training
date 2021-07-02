@@ -45,7 +45,7 @@ def drawing_on_screen():
             y1 = y2
         frame = cv2.addWeighted(frame, 0.7, screen, 0.3, 0)
         stacked = np.hstack((frame, screen))
-        cv2.imshow("abc", stacked)
+        cv2.imshow("virtual painter", stacked)
 
         if cv2.waitKey(1) & 0xFF == ord("c"):
             screen = np.zeros_like(frame)
