@@ -80,9 +80,24 @@ class TextEdgeDetect:
         return new_contour
 
     @staticmethod
+    def __get_only_answer_boxes(contours):
+        """
+        get only contours of answer boxes
+        :param contours: old contours
+        :type contours: list of vectors
+        :return: new contours
+        :rtype: list of vectors
+        """
+        new_contour = filter(lambda contour: cv2.boundingRect(contour)[1] > 150
+                             and cv2.boundingRect(contour)[2] > 500
+                             and cv2.boundingRect(contour)[3] > 100
+                             and cv2.contourArea(contour) > 1000, contours)
+        return new_contour
+
+    @staticmethod
     def __draw_mask(mask, contours):
         """
-        draw solid white mask on detected contours in order to take it easier to extract text later
+        draw solid white mask on detected contours in order to take it easier to extract objects later
         :param mask: matrix that we want to color it white
         :type mask: np.ndarray
         :param contours: detected contours
@@ -120,6 +135,20 @@ class TextEdgeDetect:
         white_mask_for_text_area = np.zeros_like(morph)
         white_mask_for_text_area = self.__draw_mask(white_mask_for_text_area, new_contours)
         mask_morph = self.__morphology_ex(white_mask_for_text_area)
+        contours, hierarchy = cv2.findContours(mask_morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        self.__draw_bounding_rect(image, contours)
+        return image
+
+    def answer_boxes_detect(self, path):
+        image = self.__read_images(path)
+        gray_image = self.__convert_color_space(image)
+        image_edge = self.__canny_edge_detector(gray_image)
+        morph = self.__morphology_ex(image_edge)
+        contours, hierarchy = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        new_contours = self.__get_only_answer_boxes(contours)
+        white_mask_for_boxes_area = np.zeros_like(morph)
+        white_mask_for_boxes_area = self.__draw_mask(white_mask_for_boxes_area, new_contours)
+        mask_morph = self.__morphology_ex(white_mask_for_boxes_area)
         contours, hierarchy = cv2.findContours(mask_morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         self.__draw_bounding_rect(image, contours)
         return image
