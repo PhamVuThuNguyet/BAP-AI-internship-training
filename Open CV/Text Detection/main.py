@@ -74,7 +74,7 @@ class TextEdgeDetect:
         :return: new contours
         :rtype: list of vectors
         """
-        new_contour = filter(lambda contour: cv2.boundingRect(contour)[1] > 150
+        new_contour = filter(lambda contour: cv2.boundingRect(contour)[1] > 100
                              and cv2.boundingRect(contour)[3] < 100
                              and cv2.contourArea(contour) > 100, contours)
         return new_contour
@@ -88,7 +88,7 @@ class TextEdgeDetect:
         :return: new contours
         :rtype: list of vectors
         """
-        new_contour = filter(lambda contour: cv2.boundingRect(contour)[1] > 150
+        new_contour = filter(lambda contour: cv2.boundingRect(contour)[1] > 100
                              and cv2.boundingRect(contour)[2] > 500
                              and cv2.boundingRect(contour)[3] > 100
                              and cv2.contourArea(contour) > 1000, contours)
@@ -140,6 +140,13 @@ class TextEdgeDetect:
         return image
 
     def answer_boxes_detect(self, path):
+        """
+        detect answer boxes in image
+        :param path: image path
+        :type path: string
+        :return: image with bounding box for detected boxes
+        :rtype: np.ndarray
+        """
         image = self.__read_images(path)
         gray_image = self.__convert_color_space(image)
         image_edge = self.__canny_edge_detector(gray_image)
@@ -152,6 +159,49 @@ class TextEdgeDetect:
         contours, hierarchy = cv2.findContours(mask_morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         self.__draw_bounding_rect(image, contours)
         return image
+
+    @staticmethod
+    def __random_generate_tic_toe(image):
+        """
+        This method used to random generate tic toe to the image with defined positions
+        :param image: image to work with
+        :type image: np.ndarray
+        :return: image with random tic toe
+        :rtype: np.ndarray
+        """
+        positions = [(np.random.randint(100, 1700), np.random.randint(200, 2700)) for i in range(10)]
+        for pos in positions:
+            cv2.drawMarker(image, pos, (0, 0, 255), markerType=cv2.MARKER_TILTED_CROSS, markerSize=50,
+                           thickness=3, line_type=cv2.LINE_AA)
+        return image, positions
+
+    def answer_boxes_with_tic_toe_detect(self, path):
+        """
+        detect only answer box that has tic toe marker
+        :param path: image path
+        :type path: string
+        :return: image with bounding box for detected object
+        :rtype: np.ndarray
+        """
+        image = self.__read_images(path)
+        image_edge = self.__canny_edge_detector(image)
+        morph = self.__morphology_ex(image_edge)
+        contours, hierarchy = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        answer_box_contours = self.__get_only_answer_boxes(contours)
+        white_mask_for_boxes_area = np.zeros_like(morph)
+        white_mask_for_boxes_area = self.__draw_mask(white_mask_for_boxes_area, answer_box_contours)
+        mask_morph = self.__morphology_ex(white_mask_for_boxes_area)
+        contours, hierarchy = cv2.findContours(mask_morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        image_with_tic_toe, positions = self.__random_generate_tic_toe(image)
+        new_contours = []
+        for contour in contours:
+            distances = [cv2.pointPolygonTest(contour, pos, False) for pos in positions]
+            for dist in distances:
+                if dist > 0:
+                    new_contours.append(contour)
+                    break
+        cv2.drawContours(image_with_tic_toe, new_contours, -1, (0, 255, 0), 3)
+        return image_with_tic_toe
 
     @staticmethod
     def write_image(path, img):
@@ -168,5 +218,12 @@ class TextEdgeDetect:
 
     @staticmethod
     def show_image(img):
+        """
+        show image
+        :param img: image to show
+        :type img: np.ndarray
+        :return:
+        :rtype:
+        """
         cv2.imshow("Image", img)
         cv2.waitKey(0)
